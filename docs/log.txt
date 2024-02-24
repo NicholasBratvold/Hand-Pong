@@ -1,3 +1,0 @@
-2024-02-23 11:20
-
-Initialized hand pong repository
