@@ -1,6 +1,9 @@
 import pygame
 from Pong.components import Ball, Arena, Paddle, Scorer
 import math
+import time
+import cv2
+import random
 
 # All state inherit. Treat it like a interface.
 class State:
@@ -16,36 +19,81 @@ class State:
 
 class Menu(State):
  
-    def __init__(self):
-        self.menu_items = ["One Player", "Settings", "Quit"]
+    def __init__(self, animation):
+        self.menu_items = ["Start", "Quit"]
         self.selected_item = 0
-        self.screen = pygame.display.get_surface()
-        self.w, self.h = self.screen.get_size()
+        self.animation = animation
+        self.w, self.h = self.animation.width, self.animation.height
+        #20 balls
+        self.balls = self.random_balls(100)
+        self.animation = animation
+
+    def random_balls(self, number):
+        return [Ball(random.randint(0, self.w), random.randint(0, self.h), radius=random.randint(1, 10), vel_x=random.randint(-5, 5), vel_y=random.randint(-5, 5)) for _ in range(number)]
 
     def draw(self):
-        font = pygame.font.Font(None, 36)
-        for index, item in enumerate(self.menu_items):
-            if index == self.selected_item:
-                text = font.render("-> " + item, True, (255, 255, 255))
-            else:
-                text = font.render(item, True, (255, 255, 255))
-            self.screen.blit(text, (self.w // 2 - text.get_width() // 2, 200 + index * 50))
-
+        self.animation.draw(self.balls)
+        self.animation.draw_menu(self.menu_items, self.selected_item)
+        self.animation.render()
+ 
     def on_event(self, event):
         if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_DOWN:
-                self.selected_item = (self.selected_item + 1) % len(self.menu_items)
-            elif event.key == pygame.K_UP:
+            if event.key == pygame.K_UP:
                 self.selected_item = (self.selected_item - 1) % len(self.menu_items)
+            elif event.key == pygame.K_DOWN:
+                self.selected_item = (self.selected_item + 1) % len(self.menu_items)
             elif event.key == pygame.K_RETURN:
-                return self.selected_item
-        return None
+                if self.selected_item == 1:
+                    pygame.quit()
+                    quit()
+                if self.selected_item == 0:
+                    return "Start"
+                else:
+                    pass
 
-    def update(self): pass
+    def update(self):
+        
+        for ball in self.balls:
+            ball.update()
+        self.check_collisions()
+   
+    def check_collisions(self):
+        # Check collision with top and bottom boundaries
+        for i in range(len(self.balls)):
+            ball1 = self.balls[i]
+            #collision with boundaries
+            if ball1.y - ball1.radius <= 0 or ball1.y + ball1.radius >= self.h:
+                ball1.vel_y *= -1
+            if ball1.x - ball1.radius <= 0 or ball1.x + ball1.radius >= self.w:
+                ball1.vel_x *= -1
+            
+            for j in range(i+1, len(self.balls)):
+                ball2 = self.balls[j]
+                dx = ball1.x - ball2.x
+                dy = ball1.y - ball2.y
+                distance = (dx**2 + dy**2)**0.5
+                if distance == 0:
+                    break
+                if distance < ball1.radius + ball2.radius:
+                    # Collision occurred
+                    v1 = pygame.Vector2(ball1.vel_x, ball1.vel_y)
+                    v2 = pygame.Vector2(ball2.vel_x, ball2.vel_y)
+                    nv = v2-v1
+                    new_v1 = pygame.math.Vector2(v1).reflect(nv)
+                    new_v2 = pygame.math.Vector2(v2).reflect(nv)
+                    ball1.vel_x = new_v1.x
+                    ball1.vel_y = new_v1.y
+                    ball2.vel_x = new_v2.x
+                    ball2.vel_y = new_v2.y
+                    print("Collision")
+
+    def on_resize(self, w, h):
+        self.w = w
+        self.h = h
 
 class Game(State):
 
-    def __init__(self, graphic, components):
+    def __init__(self, graphic, components, hand_tracker, face_tracker, cap):
         self.graphic = graphic
         self.components = components
         self.arena = None
@@ -53,6 +101,16 @@ class Game(State):
         self.paddles = []
         self.balls = []
         self.others = []
+
+        self.frame_start_time = None
+        self.fps = 0
+
+
+        self.hand_tracker = hand_tracker
+        self.face_tracker = face_tracker
+        self.cap = cap
+        self.hand_landmarks = None
+        self.face_landmarks = None
 
         for component in components:
             if isinstance(component, Arena):
@@ -68,29 +126,60 @@ class Game(State):
                 
 
     def draw(self):
+
+        if self.frame_start_time is not None:
+            time_diff = time.time() - self.frame_start_time
+            self.fps = 1 / time_diff if time_diff > 0 else 0
+        self.frame_start_time = time.time()
+
         self.graphic.draw(self.components)
+        self.graphic.draw_hand_landmarks(self.hand_landmarks, self.arena)
+        self.graphic.draw_face_landmarks(self.face_landmarks, self.arena)
+        self.graphic.draw_fps(self.fps)
+        self.graphic.render()
     
     def update(self):
         
+        ret, frame = self.cap.read()
+        if not ret:
+            print("Failed to grab frame")
+            return
+        # flip the frame so it's not a mirror view
+        frame = cv2.flip(frame, 1)
+
+        # Find hands in the frame
+        self.hand_tracker.find_hands(frame, draw=False)
+        self.hand_landmarks = self.hand_tracker.get_landmarks()
+        # Find faces in the frame
+        self.face_tracker.find_faces(frame, draw=False)
+        self.face_landmarks = self.face_tracker.get_landmarks()
+
+        for paddle in self.paddles:
+            if paddle.x < self.arena.width // 2 + self.arena.x:
+                left = True
+            else:
+                left = False
+            if self.hand_landmarks:
+                for hand_landmark in self.hand_landmarks:
+                    if hand_landmark.landmark[0].x * self.arena.width < self.arena.width // 2 and left:
+                        paddle.y = hand_landmark.landmark[0].y * self.arena.height
+                        break
+                    elif hand_landmark.landmark[0].x * self.arena.width > self.arena.width // 2 and not left:
+                        paddle.y = hand_landmark.landmark[0].y * self.arena.height
+                        break
+            
+
         for component in self.components:
             component.update()
+        
         self.check_collisions()
         self.adjust_difficulty()
         self.update_background()
+
         
 
     def on_event(self, event):
-        if event.type == pygame.VIDEORESIZE:
-                pass
-                # self.on_resize(event.w, event.h)
-                # self.graphic.width = event.w
-                # self.graphic.height = event.h
-        elif event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_ESCAPE:
-                    self.state = self.menu() if self.state() is not self.menu() else self.game()
-            elif event.key == pygame.K_RETURN:
-                if self.menu.selected_item == 0:
-                    self.state = self.game()
+        if event.type == pygame.KEYDOWN:
             for paddle in self.paddles:
 
                 if event.key == pygame.K_UP and paddle.y - paddle.vel > self.arena.y:
@@ -102,13 +191,27 @@ class Game(State):
             for paddle in self.paddles:
                 if event.key in [pygame.K_UP, pygame.K_DOWN]:
                     paddle.vel = 0
+        return None
 
     def on_resize(self, w , h):
         self.graphic.resize(w, h, self.components)
         self.graphic.width = w
         self.graphic.height = h
 
-    def adjust_difficulty(self): pass
+    def adjust_difficulty(self): 
+    
+        add_ball = False
+        if self.scorer.score_left % 2 == 0 and self.scorer.score_left > len(self.balls) and self.scorer.score_left > 0:
+            for ball in self.balls:
+                ball.vel_x +=random.randint(-1, 1)
+                ball.vel_y +=random.randint(-1, 1)
+            add_ball = True
+
+        if add_ball:
+            ball = Ball(self.arena.x + self.arena.width // 2, self.arena.y + self.arena.height // 2, radius=random.randint(3,7), vel_x=5, vel_y=5)
+            self.balls.append(ball)
+            self.components.append(ball)
+            add_ball = False
 
     def update_background(self): 
         for ball in self.balls:
@@ -181,6 +284,9 @@ class Game(State):
                     v1 = pygame.Vector2(ball1.vel_x, ball1.vel_y)
                     v2 = pygame.Vector2(ball2.vel_x, ball2.vel_y)
                     nv = v2-v1
+                    if nv[0] <= 0.01 and nv[1] <= 0.01:
+                        nv = pygame.Vector2(1, 1)
+                    print(nv)
                     new_v1 = pygame.math.Vector2(v1).reflect(nv)
                     new_v2 = pygame.math.Vector2(v2).reflect(nv)
                     ball1.vel_x = new_v1.x
@@ -189,13 +295,12 @@ class Game(State):
                     ball2.vel_y = new_v2.y
                     print("Collision")
 
-
 class StateManager(State):
 
     def __init__(self, game, menu):
         self.game = game
         self.menu = menu
-        self.state = self.game
+        self.state = self.menu
 
     def draw(self):
         self.state.draw()
@@ -205,9 +310,11 @@ class StateManager(State):
                 self.on_resize(event.w, event.h)
         elif event.type == pygame.KEYDOWN:
             if event.key == (pygame.K_ESCAPE or pygame.K_p):
-                    self.state = self.menu() if self.state() is not self.menu() else self.game()
+                self.state = self.menu if self.state is not self.menu else self.game
+        state_code = self.state.on_event(event)
 
-        self.state.on_event(event)    
+        if state_code == "Start":
+            self.state = self.game
 
     def update(self):
         self.state.update()

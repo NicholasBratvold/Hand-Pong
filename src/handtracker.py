@@ -12,7 +12,7 @@ class HandTracker:
         self.hands = self.mp_hands.Hands(
             static_image_mode=self.static_image_mode,
             max_num_hands=self.max_num_hands,
-            model_complexity = 0,
+            model_complexity = 1,
             min_detection_confidence=self.min_detection_confidence,
             min_tracking_confidence=self.min_tracking_confidence
         )
@@ -35,3 +35,31 @@ class HandTracker:
 
     def close(self):
         cv2.destroyAllWindows()
+
+class FaceTracker:
+    def __init__(self, min_detection_confidence=0.5):
+        self.min_detection_confidence = min_detection_confidence
+        self.mp_face_detection = mp.solutions.face_detection
+        self.face_detection = self.mp_face_detection.FaceDetection(
+            min_detection_confidence=self.min_detection_confidence
+        )
+        self.mp_draw = mp.solutions.drawing_utils
+
+    def find_faces(self, frame, draw=True):
+        frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        self.results = self.face_detection.process(frame_rgb)
+        if self.results.detections and draw:
+            for detection in self.results.detections:
+                self.mp_draw.draw_detection(frame, detection)
+
+    def get_landmarks(self):
+        if self.results.detections:
+            return self.results.detections
+    
+    def display_image(self, frame, window_name='Face Detection'):
+        cv2.imshow(window_name, frame)
+        cv2.waitKey(1)
+    
+    def close(self):
+        cv2.destroyAllWindows()
+    

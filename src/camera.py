@@ -1,11 +1,12 @@
 import cv2
 import numpy as np
 import time
-from handtracker import HandTracker
+from handtracker import HandTracker, FaceTracker
 
 def main():
     # Initialize HandTracker
     hand_tracker = HandTracker()
+    face_tracker = FaceTracker()
 
     # Initialize camera
     cap = cv2.VideoCapture(0)  # Change to 1 if you're using an external camera
@@ -21,6 +22,9 @@ def main():
 
         # Find hands in the frame
         hand_tracker.find_hands(frame)
+        
+        # Find faces in the frame
+        face_tracker.find_faces(frame)
 
         black_screen = np.zeros_like(frame)
 
@@ -29,7 +33,11 @@ def main():
             for hand_landmarks in hand_tracker.results.multi_hand_landmarks:
                 hand_tracker.mp_draw.draw_landmarks(black_screen, hand_landmarks, hand_tracker.mp_hands.HAND_CONNECTIONS)
 
-         # Display the black screen with hand landmarks
+        # Overlay face landmarks on the black screen
+        if face_tracker.results.detections:
+            for detection in face_tracker.results.detections:
+                face_tracker.mp_draw.draw_detection(black_screen, detection)
+
         # Draw FPS on the frame
         frame_count += 1
         elapsed_time = time.time() - start_time
@@ -46,6 +54,7 @@ def main():
     cap.release()
     cv2.destroyAllWindows()
     hand_tracker.close()
+    face_tracker.close()
 
 if __name__ == "__main__":
     main()

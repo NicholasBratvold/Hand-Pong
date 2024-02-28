@@ -8,7 +8,7 @@ class Ball:
         self.y = y
         self.vel_x = vel_x
         self.vel_y = vel_y
-        self.tail_positions = []
+        self.tail_positions = [(x, y)]
         self.max_tails = 20
 
     def update(self):
@@ -58,13 +58,13 @@ class Paddle:
 class Arena:
 
     UPDATE_RATE = 10
-    GRID_SCALE = 5
+    GRID_SCALE = 10
 
     def __init__(self, width, height):
-        self.width = int(width * 0.8)
-        self.height = int(height * 0.8)
-        self.x = int(width * 0.1)
-        self.y = int(height * 0.1)
+        self.width = int(width * 0.6)
+        self.height = int(height * 0.6)
+        self.x = int(width * 0.2)
+        self.y = int(height * 0.2)
 
         self.cols = int(self.width // self.GRID_SCALE)
         self.rows = int(self.height // self.GRID_SCALE)
