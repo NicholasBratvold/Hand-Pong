@@ -58,7 +58,21 @@ class Animation:
         pygame.draw.rect(self.draw_surf, (255, 255, 255), (paddle.x, paddle.y, paddle.width, paddle.height))
 
     def draw_arena(self, arena):
-        pygame.draw.rect(self.draw_surf, (255, 255, 255), (arena.x, arena.y, arena.width, arena.height), 2)
+
+        ALIVE_C = (161, 98, 168)
+        DEAD_C = (0, 0, 0)
+    # Calculate the starting point of the grid
+        
+        for row in range(arena.rows):
+            for col in range(arena.cols):
+                color = ALIVE_C if arena.grid[row][col] else DEAD_C
+                pygame.draw.rect(self.draw_surf, color, 
+                                (arena.x + col * arena.cell_size[0], 
+                                arena.y + row * arena.cell_size[1], 
+                                arena.cell_size[0], 
+                                arena.cell_size[1]))
+        pygame.draw.rect(self.draw_surf, ALIVE_C, (arena.x, arena.y, arena.width, arena.height), 2)
+        pygame.draw.rect(self.draw_surf, (255,255,255), (arena.x, arena.y, arena.cell_size[0]*arena.cols, arena.cell_size[1]*arena.rows), 2)
     
     def draw_scorer(self, scorer):
         score_text = f"{scorer.score_left} - {scorer.score_right}"

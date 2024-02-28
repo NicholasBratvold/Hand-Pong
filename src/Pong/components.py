@@ -1,14 +1,15 @@
 import pygame
+import numpy as np
 
 class Ball:
-    def __init__(self, x, y):
-        self.radius = 10
+    def __init__(self, x, y, radius=10, vel_x=5, vel_y=5):
+        self.radius = radius
         self.x = x
         self.y = y
-        self.vel_x = 5
-        self.vel_y = 5
+        self.vel_x = vel_x
+        self.vel_y = vel_y
         self.tail_positions = []
-        self.max_tails = 50
+        self.max_tails = 20
 
     def update(self):
         self.x += self.vel_x
@@ -36,15 +37,12 @@ class Paddle:
         self.height = height
         self.x = x
         self.y = y
-        self.vel = 7
+        self.speed = 7
+        self.vel = 0
         self.arena = arena
 
     def update(self):
-        keys = pygame.key.get_pressed()
-        if keys[pygame.K_UP] and self.y - self.vel > self.arena.y:
-            self.y -= self.vel
-        if keys[pygame.K_DOWN] and self.y + self.vel < self.arena.y + self.arena.height - self.height:
-            self.y += self.vel
+        self.y += self.vel
 
     def resize(self, width_ratio, height_ratio):
         self.width *= width_ratio
@@ -58,31 +56,58 @@ class Paddle:
         
 
 class Arena:
+
+    UPDATE_RATE = 10
+    GRID_SCALE = 5
+
     def __init__(self, width, height):
         self.width = int(width * 0.8)
         self.height = int(height * 0.8)
         self.x = int(width * 0.1)
         self.y = int(height * 0.1)
+
+        self.cols = int(self.width // self.GRID_SCALE)
+        self.rows = int(self.height // self.GRID_SCALE)
+        self.update_counter = 0
+        self.cell_size = self.width // self.cols, self.height // self.rows
+        self.grid = np.zeros((self.rows, self.cols))
         
-
-    def check_collision(self, ball, left_paddle, right_paddle):
-         # Check collision with top and bottom boundaries
-        if ball.y <= self.y + ball.radius or ball.y >= self.y + self.height - ball.radius:
-            ball.vel_y *= -1
-
-        # Check collision with left paddle
-        if (self.x + left_paddle.width + ball.radius > ball.x > self.x and left_paddle.y < ball.y < left_paddle.y + left_paddle.height):
-            ball.vel_x *= -1
-
-        # Check collision with right paddle
-        if (self.x + self.width - right_paddle.width - ball.radius < ball.x < self.x + self.width and right_paddle.y < ball.y < right_paddle.y + right_paddle.height):
-            ball.vel_x *= -1
+    
+    def update(self):
+        self.update_counter += 1
+        if self.update_counter == self.UPDATE_RATE:
+            self.update_counter = 0
+            new_grid = np.copy(self.grid)
+            for i in range(self.rows):
+                for j in range(self.cols):
+                    neighbors = self.get_neighbors(i, j)
+                    if self.grid[i][j] == 1 and (neighbors < 2 or neighbors > 3):
+                        new_grid[i][j] = 0
+                    elif self.grid[i][j] == 0 and neighbors == 3:
+                        new_grid[i][j] = 1
+            self.grid = new_grid
 
     def resize(self, width_ratio, height_ratio):
-        self.width *= width_ratio
-        self.height *= height_ratio
-        self.x *= width_ratio
-        self.y *= height_ratio
+        self.width =int(self.width * width_ratio)
+        self.height = int(self.height * height_ratio)
+        self.x = int(self.x * width_ratio)
+        self.y = int(self.y * height_ratio)
+        
+        self.cols = int(self.width // self.GRID_SCALE)
+        self.rows = int(self.height // self.GRID_SCALE)
+        self.update_counter = 0
+        self.cell_size = self.width // self.cols, self.height // self.rows
+        self.grid = np.zeros((self.rows, self.cols))
+
+    def get_neighbors(self, x, y):
+        count = 0
+        for i in range(-1, 2):
+            for j in range(-1, 2):
+                if i == 0 and j == 0:
+                    continue
+                if 0 <= x + i < self.rows and 0 <= y + j < self.cols:
+                    count += self.grid[x + i][y + j]
+        return count
 
 class Scorer:
     def __init__(self, font_size=36):
@@ -91,4 +116,7 @@ class Scorer:
         self.score_right = 0
 
     def resize(self, width_ratio, height_ratio):
+        pass
+
+    def update(self):
         pass
