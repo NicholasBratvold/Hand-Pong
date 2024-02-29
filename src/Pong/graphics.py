@@ -128,7 +128,7 @@ class Animation:
                 x_0, y_0 = (
                     detection.location_data.relative_keypoints[0].x * self.width,
                     detection.location_data.relative_keypoints[0].y * arena.height
-                    - arena.height // 2,
+                    - arena.height // 4,
                 )
                 for index, landmark in enumerate(
                     detection.location_data.relative_keypoints
@@ -138,7 +138,7 @@ class Animation:
                     )
 
                     # Eyes
-                    if index in [0, 1]:  # indices for left and right eye center
+                    if index in [0, 1]: 
                         pygame.draw.circle(
                             self.draw_surf, (0, 100, 0), (x + x_0, y + y_0), 10, 2
                         )

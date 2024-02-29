@@ -49,7 +49,7 @@ class Ball(Component):
     - resize(width_ratio, height_ratio): Resizes the ball based on the given width and height ratios.
     """
 
-    def __init__(self, x, y, radius=10, vel_x=5, vel_y=5):
+    def __init__(self, x, y, radius=10, vel_x=4, vel_y=4):
         self.radius = radius
         self.x = x
         self.y = y

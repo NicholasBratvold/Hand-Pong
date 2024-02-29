@@ -1,7 +1,7 @@
 import cv2
 import numpy as np
 import time
-from handtracker import HandTracker, FaceTracker
+from Tracker.trackers import HandTracker, FaceTracker
 
 def main():
     # Initialize HandTracker

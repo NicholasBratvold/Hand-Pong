@@ -3,13 +3,13 @@ import sys
 from Pong.components import Ball, Arena, Paddle, Scorer
 from Pong.gamelogic import Game, StateManager, Menu, SoundManager
 from Pong.graphics import Animation
-from Tracker.handtracker import HandTracker, FaceTracker
+from Tracker.trackers import HandTracker, FaceTracker
 import cv2
 
 import cProfile
 
-WIDTH = 1600
-HEIGHT = 1200
+WIDTH = 1024
+HEIGHT = 768
 FPS = 60
 
 

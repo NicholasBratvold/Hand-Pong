@@ -26,20 +26,25 @@ Once you have Python and pip installed, you can install the required packages. O
 
 
 ```
-    pip install scipy
+    pip3 install scipy
 
-    pip install opencv-python
+    pip3 install opencv-python
 
-    pip install mediapipe
+    pip3 install mediapipe=0.10.9
 
-    pip install pygame
-
+    pip3 install pygame
 ```
 
 These commands will download and install the required packages and their dependencies.
 
-### Step 4: Clone and Run the Game
-Now you're ready to download the game and run it. Clone the repository, navigate to the game directory, and run the main script.
+### Step 3: Clone and Run the Game
+Clone or download the repository and navigate to the folder and in your terminal. Run either:
+
+```
+    python3 src/main.py
+    or
+    python src/main.py
+```
 
 ## Physics
 
