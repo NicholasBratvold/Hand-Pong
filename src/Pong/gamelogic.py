@@ -32,7 +32,7 @@ class Menu(State):
 
 
     def random_balls(self, number):
-        return [Ball(random.randint(0, self.w), random.randint(0, self.h), radius=random.randint(1, 10), vel_x=random.randint(-5, 5), vel_y=random.randint(-5, 5)) for _ in range(number)]
+        return [Ball(random.randint(0, self.w), random.randint(0, self.h), radius=random.randint(4, 15), vel_x=random.randint(-5, 5), vel_y=random.randint(-5, 5)) for _ in range(number)]
 
     def draw(self):
         self.animation.draw(self.balls)
@@ -69,55 +69,51 @@ class Menu(State):
         for i in range(len(self.balls)):
             ball1 = self.balls[i]
             #collision with boundaries
-            if ball1.y - ball1.radius <= 0:
+            if ball1.y - ball1.radius <= 0 and ball1.vel_y < 0:
                 ball1.vel_y *= -1
                 ball1.y += offset 
                 # self.mixer.play_sound("wall")
             
-            elif ball1.y + ball1.radius >= self.h:
+            elif ball1.y + ball1.radius >= self.h and ball1.vel_y > 0:
                 ball1.vel_y *= -1
                 ball1.y -= offset
                 # self.mixer.play_sound("wall")
 
-            if ball1.x - ball1.radius <= 0:
+            if ball1.x - ball1.radius <= 0 and ball1.vel_x < 0:
                 ball1.vel_x *= -1
                 ball1.x += offset
                 # self.mixer.play_sound("wall")
             
-            elif ball1.x + ball1.radius >= self.w:
+            elif ball1.x + ball1.radius >= self.w and ball1.vel_x > 0:
                 ball1.vel_x *= -1
                 ball1.x -= offset
                 # self.mixer.play_sound("wall")
 
             for j in range(i+1, len(self.balls)):
                 ball2 = self.balls[j]
+                if ball1.hit and ball2.hit:
+                    continue
                 dx = ball1.x - ball2.x
                 dy = ball1.y - ball2.y
                 distance = (dx**2 + dy**2)**0.5
                 if distance == 0:
-                    break
+                    continue
+                    
                 if distance < ball1.radius + ball2.radius:
                     # Collision occurred
                     v1 = pygame.Vector2(ball1.vel_x, ball1.vel_y)
                     v2 = pygame.Vector2(ball2.vel_x, ball2.vel_y)
-                    nv = v2-v1
-                    if nv[0] <= 0.01 and nv[1] <= 0.01:
-                        nv = pygame.Vector2(1, 1) 
-                    new_v1 = pygame.math.Vector2(v1).reflect(nv)
-                    new_v2 = pygame.math.Vector2(v2).reflect(nv)
-                    ball1.vel_x = new_v1.x
-                    ball1.vel_y = new_v1.y
-                    ball2.vel_x = new_v2.x
-                    ball2.vel_y = new_v2.y
 
-                    # Move the balls apart
-                    overlap = ball1.radius + ball2.radius - distance + offset
-                    dx /= distance
-                    dy /= distance
-                    ball1.x += overlap / 2 * dx
-                    ball1.y += overlap / 2 * dy
-                    ball2.x -= overlap / 2 * dx
-                    ball2.y -= overlap / 2 * dy
+                    m1 = ball1.radius**2
+                    m2 = ball2.radius**2
+
+                    v1f = ((m1 - m2) * v1 + 2 * m2 * v2) / (m1 + m2)
+                    v2f = ((m2 - m1) * v2 + 2 * m1 * v1) / (m1 + m2)
+
+                    ball1.vel_x = v1f.x
+                    ball1.vel_y = v1f.y
+                    ball2.vel_x = v2f.x
+                    ball2.vel_y = v2f.y
 
                     ball1.hit = True
                     ball2.hit = True
@@ -127,6 +123,7 @@ class Menu(State):
     def on_resize(self, w, h):
         self.w = w
         self.h = h
+        self.animation.resize(w, h, self.balls)
 
 class Game(State):
 
@@ -249,7 +246,7 @@ class Game(State):
         vel_array = [-7, -6, -5, -4, -3, 3, 4, 5, 6, 7]
         max_balls = 10
         add_ball = False
-        if self.scorer.score_left > 2 * len(self.balls) and self.scorer.score_left > 0 and len(self.balls) <= max_balls:
+        if self.scorer.score_left > len(self.balls)**2 + 1 and self.scorer.score_left > 0 and len(self.balls) <= max_balls:
             add_ball = True
 
         if add_ball:
@@ -313,11 +310,11 @@ class Game(State):
         for i in range(len(self.balls)):
             ball1 = self.balls[i]
             #collision with top and bottom boundaries
-            if ball1.y - ball1.radius <= self.arena.y:
+            if ball1.y - ball1.radius <= self.arena.y and ball1.vel_y < 0:
                 ball1.vel_y *= -1
                 ball1.y += offset
                 self.mixer.play_sound("wall")
-            elif ball1.y + ball1.radius >= self.arena.y + self.arena.height:
+            elif ball1.y + ball1.radius >= self.arena.y + self.arena.height and ball1.vel_y > 0:
                 ball1.vel_y *= -1
                 ball1.y -= offset
                 self.mixer.play_sound("wall")
@@ -328,17 +325,19 @@ class Game(State):
             for paddle in self.paddles:
                 # Check collision with left paddle
                 if (paddle.x < self.arena.width // 2 + self.arena.x):
-                    if (paddle.x + paddle.width + ball1.radius > ball1.x > paddle.x and paddle.y < ball1.y < paddle.y + paddle.height):
+                    if (paddle.x + paddle.width + ball1.radius > ball1.x > paddle.x and paddle.y < ball1.y < paddle.y + paddle.height and ball1.vel_x < 0):
                         ball1.vel_x *= -1
                         ball1.x += offset
                         self.mixer.play_sound("paddle")
+                        paddle.hit = True
 
                 # Check collision with right paddle
                 if (paddle.x > self.arena.width // 2 + self.arena.x):
-                    if (paddle.x - ball1.radius < ball1.x < paddle.x + paddle.width and paddle.y < ball1.y < paddle.y + paddle.height):
+                    if (paddle.x - ball1.radius < ball1.x < paddle.x + paddle.width and paddle.y < ball1.y < paddle.y + paddle.height and ball1.vel_x > 0):
                         ball1.vel_x *= -1
                         ball1.x -= offset
                         self.mixer.play_sound("paddle")
+                        paddle.hit = True
 
                 # Check if the paddle is out of bounds 
                 if paddle.y < self.arena.y:
@@ -347,35 +346,30 @@ class Game(State):
                     paddle.y = self.arena.y + self.arena.height - paddle.height
 
             for j in range(i+1, len(self.balls)):
+                
                 ball2 = self.balls[j]
+                if ball1.hit and ball2.hit:
+                    continue
                 dx = ball1.x - ball2.x
                 dy = ball1.y - ball2.y
                 distance = (dx**2 + dy**2)**0.5
                 if distance == 0:
-                    break
+                    continue
                 if distance < ball1.radius + ball2.radius:
                     # Collision occurred
                     v1 = pygame.Vector2(ball1.vel_x, ball1.vel_y)
                     v2 = pygame.Vector2(ball2.vel_x, ball2.vel_y)
-                    nv = v2-v1
-                    if nv[0] <= 0.01 and nv[1] <= 0.01:
-                        nv = pygame.Vector2(1, 1)
-                    
-                    new_v1 = pygame.math.Vector2(v1).reflect(nv)
-                    new_v2 = pygame.math.Vector2(v2).reflect(nv)
-                    ball1.vel_x = new_v1.x
-                    ball1.vel_y = new_v1.y
-                    ball2.vel_x = new_v2.x
-                    ball2.vel_y = new_v2.y
 
-                    # move the balls apart
-                    overlap = ball1.radius + ball2.radius - distance + offset
-                    dx /= distance
-                    dy /= distance
-                    ball1.x += overlap / 2 * dx
-                    ball1.y += overlap / 2 * dy
-                    ball2.x -= overlap / 2 * dx
-                    ball2.y -= overlap / 2 * dy
+                    m1 = ball1.radius**2
+                    m2 = ball2.radius**2
+
+                    v1f = ((m1 - m2) * v1 + 2 * m2 * v2) / (m1 + m2)
+                    v2f = ((m2 - m1) * v2 + 2 * m1 * v1) / (m1 + m2)
+
+                    ball1.vel_x = v1f.x
+                    ball1.vel_y = v1f.y
+                    ball2.vel_x = v2f.x
+                    ball2.vel_y = v2f.y
 
                     ball1.hit = True
                     ball2.hit = True
@@ -400,12 +394,14 @@ class StateManager(State):
         elif event.type == pygame.KEYDOWN:
             if event.key == (pygame.K_ESCAPE or pygame.K_p):
                 self.state = self.menu if self.state is not self.menu else self.state
+                
         state_code = self.state.on_event(event)
 
         if state_code == "One Player":
             self.state = self.one_player
         if state_code == "Two Player":
             self.state = self.two_player
+
 
     def update(self):
         now = pygame.time.get_ticks()
@@ -415,7 +411,9 @@ class StateManager(State):
         self.state.update(dt / 30)
 
     def on_resize(self, w, h):
-        self.state.on_resize(w, h)
+        self.one_player.on_resize(w, h)
+        self.two_player.on_resize(w, h)
+        self.menu.on_resize(w, h)
 
 
 class SoundManager:

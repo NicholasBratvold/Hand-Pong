@@ -53,6 +53,8 @@ class Paddle:
         self.vel = 0
         self.arena = arena
         self.hit = False
+        self.hit_time = 10
+        self.left = x < arena.x + arena.width / 2
 
     def copy(self):
         arena = self.arena.copy()
@@ -60,6 +62,12 @@ class Paddle:
 
     def update(self, dt):
         self.y += self.vel * dt
+
+        if self.hit:
+            self.hit_time -= 1
+            if self.hit_time <= 0:
+                self.hit = False
+                self.hit_time = 10
 
     def resize(self, width_ratio, height_ratio):
         self.width *= width_ratio
@@ -75,7 +83,7 @@ class Paddle:
 class Arena:
 
     UPDATE_RATE = 10
-    GRID_SCALE = 4
+    GRID_SCALE = 6
     HEIGHT_RATIO = 0.6
     WIDTH_RATIO = 0.6
 
@@ -120,16 +128,15 @@ class Arena:
             self.grid = new_grid
 
     def resize(self, width_ratio, height_ratio):
-        self.width =int(self.width * width_ratio)
-        self.height = int(self.height * height_ratio)
-        self.x = int(self.x * width_ratio)
-        self.y = int(self.y * height_ratio)
-        
+        self.width *= width_ratio
+        self.height *= height_ratio
+        self.x *= width_ratio
+        self.y *= height_ratio
         self.cols = int(self.width // self.GRID_SCALE)
         self.rows = int(self.height // self.GRID_SCALE)
-        self.update_counter = 0
         self.cell_size = self.width // self.cols, self.height // self.rows
         self.grid = np.zeros((self.rows, self.cols))
+        self.dirty_cells = []
 
 class Scorer:
     def __init__(self, font_size=36):

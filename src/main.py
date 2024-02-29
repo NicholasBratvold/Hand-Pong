@@ -29,7 +29,8 @@ class App:
         self.cap = cv2.VideoCapture(0)
 
         #Create Game Graphics
-        self.graphic = Animation(HEIGHT, WIDTH)
+        self.graphic_one = Animation(HEIGHT, WIDTH)
+        self.graphic_two = Animation(HEIGHT, WIDTH)
         self.menu_animation = Animation(HEIGHT, WIDTH)
 
         #Load sounds
@@ -42,8 +43,8 @@ class App:
 
         #Create Game States
         self.menu = Menu(self.menu_animation, self.sound_manager)
-        self.one_player = Game(self.graphic, self.components, self.sound_manager, self.hand_tracker, self.face_tracker, self.cap, one_player=True)
-        self.two_player = Game(self.graphic, self.components, self.sound_manager, self.hand_tracker, self.face_tracker, self.cap)
+        self.one_player = Game(self.graphic_one, self.components, self.sound_manager, self.hand_tracker, self.face_tracker, self.cap, one_player=True)
+        self.two_player = Game(self.graphic_two, self.components, self.sound_manager, self.hand_tracker, self.face_tracker, self.cap)
         self.state_manager = StateManager(self.one_player, self.two_player, menu=self.menu)
         self.clock = pygame.time.Clock()
         self.is_running = True

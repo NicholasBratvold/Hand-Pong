@@ -54,19 +54,20 @@ class Animation:
                     
                     # Eyes
                     if index in [0, 1]:  # indices for left and right eye center
-                        pygame.draw.circle(self.draw_surf, (255, 0, 0), (x + x_0, y + y_0), 10, 2)
+                        pygame.draw.circle(self.draw_surf, (0, 100, 0), (x + x_0, y + y_0), 10, 2)
+                        pygame.draw.circle(self.draw_surf, (0, 255, 0), (x + x_0 + 10* math.sin(math.pi/x_0), y + y_0 + 3), 3)
                     
                     # Nose
                     elif index == 2: 
-                        pygame.draw.ellipse(self.draw_surf, (255, 0, 0), (x + x_0 - 2.5, y + y_0 - 15, 5, 15))
+                        pygame.draw.ellipse(self.draw_surf, (0, 100, 0), (x + x_0 - 2.5, y + y_0 - 15, 5, 15))
                     
                     # Mouth
                     elif index == 3:
-                        pygame.draw.arc(self.draw_surf, (255, 255, 0), (x + x_0 - 15, y + y_0, 30, 20), 0, math.pi, 2)
+                        pygame.draw.arc(self.draw_surf, (0, 100, 0), (x + x_0 - 15, y + y_0, 30, 20), 0, math.pi, 2)
 
                     # Ears
                     else:
-                        pygame.draw.ellipse(self.draw_surf, (255, 0, 0), (x + x_0 - 2.5, y + y_0 - 15, 5, 15))
+                        pygame.draw.ellipse(self.draw_surf, (0, 100, 0), (x + x_0 - 2.5, y + y_0 - 15, 5, 15))
                         
 
     def draw_fps(self, fps):
@@ -100,9 +101,14 @@ class Animation:
         height_ratio = h / self.height
         self.width = w
         self.height = h
-        self.screen = pygame.display.set_mode((self.width, self.height), pygame.RESIZABLE)
         for component in components: 
             component.resize(width_ratio, height_ratio)
+        self.arena_surf = pygame.Surface((self.width, self.height), pygame.SRCALPHA)
+        self.draw_surf = pygame.Surface((self.width, self.height), pygame.SRCALPHA)
+        self.screen = pygame.display.set_mode((self.width, self.height), pygame.RESIZABLE)
+        self.screen.fill((0,0,0))
+        self.render()
+        
 
     def draw_ball(self, ball):
          # Draw the tail circles with changing colors
@@ -114,8 +120,9 @@ class Animation:
             wiggle = 5  # Adjust this value to change the amount of wiggle
             x += math.cos(x * 0.1) * wiggle
             y += math.sin(y * 0.1) * wiggle
-            tail_color = (255 - tail_factor * i, 255 - tail_factor * i, 255 - tail_factor * i)
-            pygame.draw.circle(self.draw_surf, tail_color, (x, y), ball.radius * (i + 1) / tail_length)
+
+            tail_color = (max(20 - tail_factor * i, 0), 255 - tail_factor * i, max(100 - tail_factor * i, 0))
+            pygame.draw.circle(self.draw_surf, tail_color, (x, y), ball.radius * (i + 1) / tail_length, 1)
         if ball.hit:
             ball_color = (255 - ball.hit_time, 10*ball.hit_time, 0)
         else:
@@ -124,7 +131,16 @@ class Animation:
         
     
     def draw_paddle(self, paddle):
-        pygame.draw.rect(self.draw_surf, (255, 255, 255), (paddle.x, paddle.y, paddle.width, paddle.height))
+        paddle_color = (255, 255, 255)
+        offset = 0
+        if paddle.hit:
+            # make paddle warp and bounce when hit
+            paddle_color = (255, 0, 0)
+            offset = math.sin(paddle.hit_time / 10 * math.pi) * 10
+        if paddle.left:
+            pygame.draw.rect(self.draw_surf, paddle_color, (paddle.x, paddle.y, paddle.width - offset, paddle.height))
+        else:
+            pygame.draw.rect(self.draw_surf, paddle_color, (paddle.x + offset, paddle.y, paddle.width - offset, paddle.height))
 
     def draw_arena(self, arena):
         #print(f"Drawing arena with dirty cells: {arena.dirty_cells}")  # Add this line
@@ -144,7 +160,6 @@ class Animation:
         arena.dirty_cells.clear()
 
         pygame.draw.rect(draw_surf, ALIVE_C, (arena.x, arena.y, arena.width, arena.height), 2)
-        pygame.draw.rect(draw_surf, (255,255,255), (arena.x, arena.y, cell_size[0]*arena.cols, cell_size[1]*arena.rows), 2) 
 
     def draw_scorer(self, scorer):
         score_text = f"{scorer.score_left} - {scorer.score_right}"
