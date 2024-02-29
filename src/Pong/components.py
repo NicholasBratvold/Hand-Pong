@@ -12,7 +12,7 @@ class Ball:
         self.tail_positions = [(x, y)]
         self.max_tails = 20
         self.hit = False
-        self.hit_time = 10
+        self.hit_time = 5
 
     def copy(self):
         return Ball(self.x, self.y, self.radius, self.vel_x, self.vel_y)
@@ -38,6 +38,7 @@ class Ball:
         scaling_factor = (width_ratio + height_ratio) / 2
         self.vel_x *= scaling_factor
         self.vel_y *= scaling_factor
+        self.radius *= scaling_factor
 
 
 class Paddle:
@@ -53,7 +54,7 @@ class Paddle:
         self.vel = 0
         self.arena = arena
         self.hit = False
-        self.hit_time = 10
+        self.hit_time = 5
         self.left = x < arena.x + arena.width / 2
 
     def copy(self):
@@ -65,9 +66,9 @@ class Paddle:
 
         if self.hit:
             self.hit_time -= 1
-            if self.hit_time <= 0:
+            if self.hit_time <= 0: 
                 self.hit = False
-                self.hit_time = 10
+                self.hit_time = 5
 
     def resize(self, width_ratio, height_ratio):
         self.width *= width_ratio
@@ -83,7 +84,7 @@ class Paddle:
 class Arena:
 
     UPDATE_RATE = 10
-    GRID_SCALE = 6
+    GRID_SCALE = 10
     HEIGHT_RATIO = 0.6
     WIDTH_RATIO = 0.6
 

@@ -136,7 +136,7 @@ class Animation:
         if paddle.hit:
             # make paddle warp and bounce when hit
             paddle_color = (255, 0, 0)
-            offset = math.sin(paddle.hit_time / 10 * math.pi) * 10
+            offset = math.sin(paddle.hit_time / 5 * math.pi) * 10
         if paddle.left:
             pygame.draw.rect(self.draw_surf, paddle_color, (paddle.x, paddle.y, paddle.width - offset, paddle.height))
         else:

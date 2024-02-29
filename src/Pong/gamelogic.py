@@ -118,7 +118,7 @@ class Menu(State):
                     ball1.hit = True
                     ball2.hit = True
                     # self.mixer.play_sound("ball")
-                    print("Collision")
+                    # print("Collision")
 
     def on_resize(self, w, h):
         self.w = w
@@ -374,7 +374,7 @@ class Game(State):
                     ball1.hit = True
                     ball2.hit = True
                     self.mixer.play_sound("ball")
-                    print("Collision")
+                    # print("Collision")
 
 class StateManager(State):
 
@@ -407,7 +407,7 @@ class StateManager(State):
         now = pygame.time.get_ticks()
         dt = now - self.last_update
         self.last_update = now
-        print(dt)
+        # print(dt)
         self.state.update(dt / 30)
 
     def on_resize(self, w, h):

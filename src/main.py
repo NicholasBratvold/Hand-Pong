@@ -10,7 +10,7 @@ import cProfile
 
 WIDTH = 1600
 HEIGHT = 1200
-FPS = 60
+FPS = 90
 
 
 class App:
