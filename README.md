@@ -2,14 +2,16 @@
 
 A simple Pong game implemented with pygame, openCV, and MediaPipe. 
 
-The camera is used to detect hand movements and translate them into paddle movements.
-There are two modes available:
+The camera is used to detect hand movements and translate them into paddle movements. There are two modes available:
 
 1. One Player Mode: In this mode, the goal is to strike the balls on the opposite side using the paddle controlled by hand movements.
 
 2. Two Player Mode: In this mode, two paddles are controlled by two hands, either your own or with another person. The goal is to strike the balls on the opposite side using the paddles.
  
-The game difficulty increases by spawning additional balls as the score increases. The balls can collide with each other for some chaotic effects
+The game difficulty increases by spawning additional balls as the score increases. The balls can collide with each other for some chaotic effects.
+
+As a fun effect the balls movements are used to seed live cells for Conway's Game of Life. https://en.wikipedia.org/wiki/Conway%27s_Game_of_Life
+
 
 ## Installation
 ### Step 1: Install Python
@@ -19,15 +21,11 @@ https://www.python.org/downloads/
 
 This game requires Python 3.6 or later.
 
-### Step 2: Install Pip
-Pip is a package manager for Python. It's used to install and manage Python packages. If you installed Python from the official website, you should already have pip. If not, you can install it following the instructions here:
-
-https://pip.pypa.io/en/stable/installation/
-
-### Step 3: Install Required Python Packages
+### Step 2: Install Required Python Packages
 Once you have Python and pip installed, you can install the required packages. Open a terminal or command prompt and run the following commands:
 
-``
+
+```
     pip install scipy
 
     pip install opencv-python
@@ -35,7 +33,9 @@ Once you have Python and pip installed, you can install the required packages. O
     pip install mediapipe
 
     pip install pygame
-``
+
+```
+
 These commands will download and install the required packages and their dependencies.
 
 ### Step 4: Clone and Run the Game
@@ -50,6 +50,7 @@ The components in the game all have a position and velocity. The position is upd
 When two objects collide, we use the principle of conservation of momentum to calculate their velocities after the collision. The formula used is:
 
 where:
+
 v1f = ((m1 - m2) * v1i + 2 * m2 * v2i) / (m1 + m2)
 
 v2f = ((m2 - m1) * v2i + 2 * m_1 * v1i) / (m1 + m2)
