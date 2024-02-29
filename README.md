@@ -2,18 +2,14 @@
 
 A simple Pong game implemented with pygame, openCV, and MediaPipe. 
 
-This code controls the paddles in a game using camera-detected hand movements. 
+The camera is used to detect hand movements and translate them into paddle movements.
 There are two modes available:
 
 1. One Player Mode: In this mode, the goal is to strike the balls on the opposite side using the paddle controlled by hand movements.
 
 2. Two Player Mode: In this mode, two paddles are controlled by two hands, either your own or with another person. The goal is to strike the balls on the opposite side using the paddles.
  
-
 The game difficulty increases by spawning additional balls as the score increases. The balls can collide with each other for some chaotic effects
-
-
-Note: The camera is used to detect hand movements and translate them into paddle movements.
 
 ## Installation
 ### Step 1: Install Python
@@ -33,8 +29,11 @@ Once you have Python and pip installed, you can install the required packages. O
 
 ``
     pip install scipy
+
     pip install opencv-python
+
     pip install mediapipe
+
     pip install pygame
 ``
 These commands will download and install the required packages and their dependencies.
@@ -51,11 +50,14 @@ The components in the game all have a position and velocity. The position is upd
 When two objects collide, we use the principle of conservation of momentum to calculate their velocities after the collision. The formula used is:
 
 where:
-$ v_{1f} = ((m_1 - m_2) * v_{1i} + 2 * m_2 * v_{2i}) / (m_1 + m_2) $
-$ v_{2f} = ((m_2 - m_1) * v_{2i} + 2 * m_1 * v_{1i}) / (m_1 + m_2) $
+v1f = ((m1 - m2) * v1i + 2 * m2 * v2i) / (m1 + m2)
+
+v2f = ((m2 - m1) * v2i + 2 * m_1 * v1i) / (m1 + m2)
 
 v1f and v2f are the final velocities of the objects.
+
 v1i and v2i are the initial velocities of the objects.
+
 m1 and m2 are the masses of the objects.
 
 This formula assumes that the collisions are perfectly elastic, meaning that the total kinetic energy is conserved.
