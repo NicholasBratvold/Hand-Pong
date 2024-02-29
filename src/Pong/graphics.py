@@ -8,16 +8,18 @@ class Animation:
         self.height = height
         self.width = width
         self.screen = pygame.display.set_mode((self.width, self.height), pygame.RESIZABLE)
+        self.arena_surf = pygame.Surface((self.width, self.height), pygame.SRCALPHA)  # Surface for the arena
         self.draw_surf = pygame.Surface((self.width, self.height), pygame.SRCALPHA)
         pygame.display.set_caption("Pong")
 
 
     def draw(self, components):
-        self.draw_surf.fill((0,0,0,240))
+        self.draw_surf.fill((0,0,0,220))
         for component in components:
             self.draw_component(component)
 
     def render(self):
+        self.screen.blit(self.arena_surf, (0,0))
         self.screen.blit(self.draw_surf, (0,0))
         pygame.display.flip()
 
@@ -47,9 +49,25 @@ class Animation:
         if landmarks:
             for detection in landmarks:
                 x_0, y_0 = detection.location_data.relative_keypoints[0].x * self.width, detection.location_data.relative_keypoints[0].y * arena.height - arena.height// 2
-                for landmark in detection.location_data.relative_keypoints:
+                for index, landmark in enumerate(detection.location_data.relative_keypoints):
                     x, y = int(landmark.x * self.width * scale), int(landmark.y * self.height * scale)
-                    pygame.draw.circle(self.draw_surf, (0, 100, 0), (x+ x_0, y + y_0), 5)
+                    
+                    # Eyes
+                    if index in [0, 1]:  # indices for left and right eye center
+                        pygame.draw.circle(self.draw_surf, (255, 0, 0), (x + x_0, y + y_0), 10, 2)
+                    
+                    # Nose
+                    elif index == 2: 
+                        pygame.draw.ellipse(self.draw_surf, (255, 0, 0), (x + x_0 - 2.5, y + y_0 - 15, 5, 15))
+                    
+                    # Mouth
+                    elif index == 3:
+                        pygame.draw.arc(self.draw_surf, (255, 255, 0), (x + x_0 - 15, y + y_0, 30, 20), 0, math.pi, 2)
+
+                    # Ears
+                    else:
+                        pygame.draw.ellipse(self.draw_surf, (255, 0, 0), (x + x_0 - 2.5, y + y_0 - 15, 5, 15))
+                        
 
     def draw_fps(self, fps):
 
@@ -98,8 +116,10 @@ class Animation:
             y += math.sin(y * 0.1) * wiggle
             tail_color = (255 - tail_factor * i, 255 - tail_factor * i, 255 - tail_factor * i)
             pygame.draw.circle(self.draw_surf, tail_color, (x, y), ball.radius * (i + 1) / tail_length)
-
-        ball_color = (255, 255, 255)
+        if ball.hit:
+            ball_color = (255 - ball.hit_time, 10*ball.hit_time, 0)
+        else:
+            ball_color = (20, 255, 90)
         pygame.draw.circle(self.draw_surf, ball_color, (ball.x, ball.y), ball.radius)
         
     
@@ -107,22 +127,25 @@ class Animation:
         pygame.draw.rect(self.draw_surf, (255, 255, 255), (paddle.x, paddle.y, paddle.width, paddle.height))
 
     def draw_arena(self, arena):
+        #print(f"Drawing arena with dirty cells: {arena.dirty_cells}")  # Add this line
 
-        ALIVE_C = (161, 98, 168)
+        ALIVE_C = (20, 255, 90)
         DEAD_C = (0, 0, 0)
-        # Calculate the starting point of the grid
-        
-        for row in range(arena.rows):
-            for col in range(arena.cols):
-                color = ALIVE_C if arena.grid[row][col] else DEAD_C
-                pygame.draw.rect(self.draw_surf, color, 
-                                (arena.x + col * arena.cell_size[0], 
-                                arena.y + row * arena.cell_size[1], 
-                                arena.cell_size[0], 
-                                arena.cell_size[1]))
-        pygame.draw.rect(self.draw_surf, ALIVE_C, (arena.x, arena.y, arena.width, arena.height), 2)
-        pygame.draw.rect(self.draw_surf, (255,255,255), (arena.x, arena.y, arena.cell_size[0]*arena.cols, arena.cell_size[1]*arena.rows), 2)
-    
+        draw_surf = self.arena_surf
+        cell_size = arena.cell_size
+
+        for row, col in arena.dirty_cells:
+            color = ALIVE_C if arena.grid[row][col] else DEAD_C
+            x = arena.x + col * cell_size[0]
+            y = arena.y + row * cell_size[1]
+            pygame.draw.ellipse(draw_surf, color, (x, y, cell_size[0], cell_size[1]))
+
+        # Clear the dirty cells list after drawing them
+        arena.dirty_cells.clear()
+
+        pygame.draw.rect(draw_surf, ALIVE_C, (arena.x, arena.y, arena.width, arena.height), 2)
+        pygame.draw.rect(draw_surf, (255,255,255), (arena.x, arena.y, cell_size[0]*arena.cols, cell_size[1]*arena.rows), 2) 
+
     def draw_scorer(self, scorer):
         score_text = f"{scorer.score_left} - {scorer.score_right}"
         text_render = scorer.font.render(score_text, True, (255, 255, 255))
