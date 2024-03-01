@@ -34,8 +34,11 @@ Once you have Python and pip installed, you can install the required packages. O
 
 ```
 pip install scipy
+
 pip install opencv-python
+
 pip install mediapipe==0.10.9
+
 pip install pygame
 ```
 You may have to use pip3 instead of pip depending on your Python configuration.
@@ -45,9 +48,7 @@ Clone or download the repository, navigate to the folder and in your terminal, a
 
 ```
     python3 src/main.py
-```
-    or
-```
+
     python src/main.py
 ```
 
@@ -80,3 +81,20 @@ This formula assumes that the collisions are perfectly elastic.
 ## Demo
 
 See the data folder for a demo video. 
+
+## Resources
+
+Pygame:
+    https://www.pygame.org/docs/
+
+MediaPipe:
+    https://developers.google.com/mediapipe/solutions
+
+Conway' Game of Life:
+    https://en.wikipedia.org/wiki/Conway%27s_Game_of_Life
+
+Collision:
+    https://en.wikipedia.org/wiki/Elastic_collision
+
+AI:
+    ChatGPT, Copilot
