@@ -16,7 +16,9 @@ Note: For best results, use bright light and keep your hands close to the camera
 
 ### Controls
 ESC: Enter pause menu.
+
 Arrow keys: Select game mode
+
 Enter / Return: Start game
 
 ## Installation
@@ -75,4 +77,6 @@ This formula assumes that the collisions are perfectly elastic.
 
 
 
+## Demo
 
+See the data folder for a demo video. 
