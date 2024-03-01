@@ -44,7 +44,7 @@ pip install pygame
 You may have to use pip3 instead of pip depending on your Python configuration.
 
 ### Step 3: Clone and Run the Game
-Clone or download the repository, navigate to the folder and in your terminal, and run either:
+Clone or download the repository, navigate to the folder, and in your terminal run either:
 
 ```
     python3 src/main.py
