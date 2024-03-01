@@ -110,7 +110,7 @@ class Animation:
                         landmark.y * arena.height * scale
                     )
                     pygame.draw.circle(
-                        self.draw_surf, (100, 0, 0), (x + x_0, y + y_0), 3
+                        self.draw_surf, (150, 0, 0), (x + x_0, y + y_0), 3
                     )
 
     def draw_face_landmarks(self, landmarks, arena):
@@ -126,7 +126,7 @@ class Animation:
         if landmarks:
             for detection in landmarks:
                 x_0, y_0 = (
-                    detection.location_data.relative_keypoints[0].x * self.width,
+                    detection.location_data.relative_keypoints[0].x * arena.width,
                     detection.location_data.relative_keypoints[0].y * arena.height
                     - arena.height // 4,
                 )
@@ -144,8 +144,8 @@ class Animation:
                         )
                         pygame.draw.circle(
                             self.draw_surf,
-                            (0, 255, 0),
-                            (x + x_0 + 10 * math.sin(math.pi / x_0), y + y_0 + 3),
+                            (255, 255, 255),
+                            (x + x_0 + 5 * math.sin(2 * math.pi / landmark.x), y + y_0 + 5 * math.sin(2* math.pi / landmark.y)),
                             3,
                         )
 
@@ -154,7 +154,7 @@ class Animation:
                         pygame.draw.ellipse(
                             self.draw_surf,
                             (0, 100, 0),
-                            (x + x_0 - 2.5, y + y_0 - 15, 5, 15),
+                            (x + x_0 - 2.5, y + y_0 - 5, 5, 15),
                         )
 
                     # Mouth
@@ -163,17 +163,9 @@ class Animation:
                             self.draw_surf,
                             (0, 100, 0),
                             (x + x_0 - 15, y + y_0, 30, 20),
+                            -math.pi,
                             0,
-                            math.pi,
                             2,
-                        )
-
-                    # Ears
-                    else:
-                        pygame.draw.ellipse(
-                            self.draw_surf,
-                            (0, 100, 0),
-                            (x + x_0 - 2.5, y + y_0 - 15, 5, 15),
                         )
 
     def draw_fps(self, fps):

@@ -49,7 +49,7 @@ class Ball(Component):
     - resize(width_ratio, height_ratio): Resizes the ball based on the given width and height ratios.
     """
 
-    def __init__(self, x, y, radius=10, vel_x=4, vel_y=4):
+    def __init__(self, x, y, radius=10, vel_x=3, vel_y=3):
         self.radius = radius
         self.x = x
         self.y = y
@@ -216,7 +216,7 @@ class Arena(Component):
     """
 
     UPDATE_RATE = 10
-    GRID_SCALE = 4
+    GRID_SCALE = 5
     HEIGHT_RATIO = 0.6
     WIDTH_RATIO = 0.6
 
